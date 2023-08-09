@@ -15,6 +15,7 @@ form.addEventListener('submit', (e) => {
     wipeForm();
 });
 
+// Book constructor
 function Book(title, author, pages, read) {
     this.title = title;
     this.author = author;
@@ -22,6 +23,15 @@ function Book(title, author, pages, read) {
     this.read = read;
 }
 
+Book.prototype.toggleRead = function() {
+    if (this.read) {
+        this.read = false;
+    }   else  {
+        this.read = true;
+    }
+}
+
+// Adds book to the library array and table
 function addBookToLibrary() {    
     const book = new Book(
         titleField.value,
@@ -33,20 +43,21 @@ function addBookToLibrary() {
     updateTable(book);
 }
 
-function wipeForm() {
-    titleField.value = "";
-    authorField.value = "";
-    pagesField.value = "";
-    readCheckBox.checked = false;
-}
-
 function updateTable(book) {
     let table = document.getElementById('books-table');
+    let row = addTableRow(book, table);
+    addBookDeleteButton(row);
+    addBookReadToggle(row);
+}
+
+function addTableRow(book, table) {
     let row = table.insertRow();
+    row.dataset.bookIndex = myLibrary.findIndex((ele) => ele == book);
     let titleCell = row.insertCell(0);
     let authorCell = row.insertCell(1);
     let pagesCell = row.insertCell(2);
     let readCell = row.insertCell(3);
+    readCell.classList.add('read');
     titleCell.innerHTML = book.title;
     authorCell.innerHTML = book.author;
     pagesCell.innerHTML = book.pages;
@@ -54,5 +65,46 @@ function updateTable(book) {
         readCell.innerHTML = 'Yes';
     }  else  {
         readCell.innerHTML = 'No';
-    }    
+    }
+    return row;
+}
+
+function addBookDeleteButton(row) {
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = 'delete';
+    deleteButton.addEventListener('click', function (e) {
+        const index = this.parentNode.dataset.bookIndex;
+        myLibrary[index] = undefined;
+        row.remove();
+    });
+    row.appendChild(deleteButton);
+}
+
+function addBookReadToggle(row) {
+    const readToggle = document.createElement("button");
+    readToggle.textContent = 'toggle read';
+    readToggle.addEventListener('click', function (e) {
+        const index = this.parentNode.dataset.bookIndex;
+        myLibrary[index].toggleRead();
+        readCell = row.querySelector('.read');
+        updateReadCell(readCell);
+    });
+    row.appendChild(readToggle);
+}
+
+// updates the read cell for a book in the books table whenever a books read status is toggled
+function updateReadCell(cell) {
+    if (cell.innerHTML == 'Yes') {
+        cell.innerHTML = 'No'
+    }   else  {
+        cell.innerHTML = 'Yes'
+    }
+}
+
+// Clears book form
+function wipeForm() {
+    titleField.value = "";
+    authorField.value = "";
+    pagesField.value = "";
+    readCheckBox.checked = false;
 }
